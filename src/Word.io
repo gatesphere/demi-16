@@ -20,7 +20,7 @@ Word := Object clone do(
     )
     retval := (self value & mask) >> start
     //writeln("mask: " .. mask asBinary)
-    //writeln("retval: " .. retval asBinary)
+    //writeln("retval: " .. retval asBinary .. " " .. retval asHex .. " " .. retval)
     retval
   )
   
@@ -28,7 +28,7 @@ Word := Object clone do(
   getExtendedOp := method(self getA)
   getA := method(self extract(4, 6))
   getExtendedA := method(self getB)
-  getB := method(self extract(9, 6))
+  getB := method(self extract(10, 6))
   
   isExtendedOp := method(if(self getBasicOp == 0, return true, return false))
   isBasicOp := method(self isExtendedOp not)

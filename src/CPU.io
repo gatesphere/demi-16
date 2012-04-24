@@ -10,17 +10,17 @@ CPU := Object clone do(
   cycle := 0
   
   // registers
-  A := 0
-  B := 0
-  C := 0
-  X := 0
-  Y := 0
-  Z := 0
-  I := 0
-  J := 0
+  A  := 0
+  B  := 0
+  C  := 0
+  X  := 0
+  Y  := 0
+  Z  := 0
+  I  := 0
+  J  := 0
   PC := 0 // program counter
   SP := 0 // stack pointer
-  O := 0  // overflow
+  O  := 0 // overflow
   
   // ram, 65536 16-bit words
   ram := List clone setSize(65536)
@@ -85,6 +85,25 @@ CPU := Object clone do(
   */
   
   
+  // load binary
+  loadBin := method(bin,
+    f := File with(bin) openForReading
+    i := 0
+    j := 0
+    while(i < f size,
+      hibyte := f at(i)
+      //writeln(lobyte asHex)
+      lobyte := f at(i + 1)
+      //writeln(hibyte asHex)
+      if(lobyte == nil, lobyte = 0x00)
+      if(hibyte == nil, hibyte = 0x00)
+      word := ((hibyte << 8) + lobyte)
+      i = i + 2
+      self ram atPut(j, word)
+      j = j + 1
+    )
+    self
+  )
   
   // display
   pad := method(val,

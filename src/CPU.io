@@ -43,6 +43,46 @@ CPU := Object clone do(
     self
   )
   
+  // opcode mapping
+  parseOpcode := method(word,
+    if(word isBasicOp,
+      op := word getBasicOp
+      op switch(
+        0x1, self SET(word),
+        0x2, self ADD(word),
+        0x3, self SUB(word),
+        0x4, self MUL(word),
+        0x5, self DIV(word),
+        0x6, self MOD(word),
+        0x7, self SHL(word),
+        0x8, self SHR(word),
+        0x9, self AND(word),
+        0xa, self BOR(word),
+        0xb, self XOR(word),
+        0xc, self IFE(word),
+        0xd, self IFN(word),
+        0xe, self IFG(word),
+        0xf, self IFB(word)
+      )
+      ,
+      op := word getExtendedOp
+      op switch(
+        0x01, self JSR(word)
+      )
+    )
+    self
+  )
+  
+  // value mapping
+  /*
+  parseValue := method(value,
+    value switch(
+      0x00, A,
+      0x01, B,
+      0x02, C, ...
+    )
+  )
+  */
   
   
   

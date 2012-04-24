@@ -30,5 +30,6 @@ Word := Object clone do(
   getExtendedA := method(self getB)
   getB := method(self extract(9, 6))
   
-  isExtendedOpcode := method(if(self getBasicOp == 0, return true, return false))
+  isExtendedOp := method(if(self getBasicOp == 0, return true, return false))
+  isBasicOp := method(self isExtendedOp not)
 )

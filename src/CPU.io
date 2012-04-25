@@ -78,7 +78,7 @@ CPU := Object clone do(
         0x0c, self SHR(word),
         0x0d, self ASR(word),
         0x0e, self SHL(word),
-        0x0f, nil, // as yet undefined
+        0x0f, self MVI(word),
         0x10, self IFB(word),
         0x11, self IFC(word),
         0x12, self IFE(word),
@@ -86,7 +86,15 @@ CPU := Object clone do(
         0x14, self IFG(word),
         0x15, self IFA(word),
         0x16, self IFL(word),
-        0x17, self IFU(word)
+        0x17, self IFU(word),
+        0x18, nil, // as yet undefined
+        0x19, nil, // as yet undefined
+        0x1a, self ADX(word),
+        0x1b, self SUX(word),
+        0x1c, nil // as yet undefined
+        0x1d, nil // as yet undefined
+        0x1e, nil // as yet undefined
+        0x1f, nil // as yet undefined
       )
       ,
       op := word getExtendedOp

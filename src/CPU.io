@@ -2,9 +2,6 @@
 // CPU proto
 // Jacob Peck
 
-// ram access
-List squareBrackets := method(arg, self at(arg))
-
 CPU := Object clone do(
   // cycle count
   cycle ::= 0

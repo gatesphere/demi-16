@@ -2,6 +2,8 @@
 // helpers
 // Jacob Peck
 
+List squareBrackets := method(arg, self at(arg))
+
 twosCompliment := method(value,
   orig := value asBinary
   new := ""

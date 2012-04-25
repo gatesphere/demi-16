@@ -4,8 +4,7 @@
 // test program
 // Jacob M. Peck
 
-doFile("../src/CPU.io")
-doFile("../src/Word.io")
+doFile("../src/main.io")
 
 c := CPU initialize
 c write_ram(0, 0x03)

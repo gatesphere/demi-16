@@ -157,31 +157,6 @@ CPU := Object clone do(
   incCycle := method(
     self setCycle(self cycle + 1)
   )
-  
-  twosCompliment := method(value,
-    orig := value asBinary
-    new := ""
-    toggle := false
-    for(i, orig size - 1, 0, -1,
-      writeln("#{i} #{orig at(i)}" interpolate)
-      if(toggle,
-        if(orig at(i) == "1" at(0),
-          new = "0" .. new
-          ,
-          new = "1" .. new
-        )
-        ,
-        if(orig at(i) == "0" at(0),
-          new = "0" .. new
-          ,
-          new = "1" .. new
-          toggle = true
-        )
-      )
-    )
-    writeln(new)
-    new fromBase(2)
-  )
     
       
   
@@ -313,25 +288,19 @@ CPU := Object clone do(
     self
   )
   
-  // display
-  pad := method(val,
-    v := val toBase(16)
-    while(v size < 4, v prependSeq("0"))
-    v
-  )
-  
+  // display  
   printRegisters := method(
-    a := self pad(self A)
-    b := self pad(self B)
-    c := self pad(self C)
-    x := self pad(self X)
-    y := self pad(self Y)
-    z := self pad(self Z)
-    i := self pad(self I)
-    j := self pad(self J)
-    pc := self pad(self PC)
-    sp := self pad(self SP)
-    ex := self pad(self EX)
+    a := pad(self A)
+    b := pad(self B)
+    c := pad(self C)
+    x := pad(self X)
+    y := pad(self Y)
+    z := pad(self Z)
+    i := pad(self I)
+    j := pad(self J)
+    pc := pad(self PC)
+    sp := pad(self SP)
+    ex := pad(self EX)
     writeln(" A: #{a}  B: #{b}  C: #{c}"   interpolate)
     writeln(" X: #{x}  Y: #{y}  Z: #{z}"   interpolate)
     writeln(" I: #{i}  J: #{j}"           interpolate)
@@ -344,8 +313,8 @@ CPU := Object clone do(
     k := 0
     if(start != nil, k = start, k = 0)
     lines repeat(i,
-      write(self pad((i + k) * 8) .. ": ")
-      8 repeat(j, write(self pad(self read_ram(i * 8 + j)) .. " "))
+      write(pad((i + k) * 8) .. ": ")
+      8 repeat(j, write(pad(self read_ram(i * 8 + j)) .. " "))
       writeln
     )
     self

@@ -13,9 +13,10 @@ c write_ram(3, 0x32)
 c setA(0x03)
 
 writeln("Initial value of first block of ram")
+c printRegisters
 c printRamDump(1)
 writeln("initial value of ram at 0xffff (should be 0x0000): " .. c pad(c read_ram(0xffff)))
-w := Word with("0010000110100001" fromBase(2))
+w := Word with("0010001100000001" fromBase(2))
 writeln(c)
 
 writeln

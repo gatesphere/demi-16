@@ -24,12 +24,12 @@ Word := Object clone do(
     retval
   )
   
-  getBasicOp := method(self extract(0,4))
-  getExtendedOp := method(self getA)
-  getA := method(self extract(4, 6))
-  getExtendedA := method(self getB)
-  getB := method(self extract(10, 6))
+  getBasicOp := method(self extract(0,5))
+  getExtendedOp := method(self getB)
+  getB := method(self extract(5, 5))
+  getExtendedA := method(self getA)
+  getA := method(self extract(10, 6))
   
-  isExtendedOp := method(if(self getBasicOp == 0, return true, return false))
+  isExtendedOp := method(if(self getBasicOp == 0x00, return true, return false))
   isBasicOp := method(self isExtendedOp not)
 )

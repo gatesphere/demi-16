@@ -20,7 +20,7 @@ CPU := Object clone do(
   J  ::= 0x0000
   PC ::= 0x0000 // program counter
   SP ::= 0x0000 // stack pointer
-  O  ::= 0x0000 // overflow
+  EX ::= 0x0000 // overflow/extra
   
   // ram, 65536 16-bit words
   ram := List clone setSize(65536)
@@ -30,7 +30,7 @@ CPU := Object clone do(
    * -12  = next word literal 
    * -11  = SP
    * -10  = PC
-   * -9   = O register
+   * -9   = EX
    * -8   = A register
    * -7   = B register
    * -6   = C register
@@ -56,7 +56,7 @@ CPU := Object clone do(
     self J = 0x0000
     self PC = 0x0000
     self SP = 0x0000
-    self O = 0x0000
+    self EX = 0x0000
     self addr_pointer = 0
     self ram size repeat(i, self ram atPut(i, 0x00))
     self
@@ -67,21 +67,29 @@ CPU := Object clone do(
     if(word isBasicOp,
       op := word getBasicOp
       op switch(
-        0x1, self SET(word),
-        0x2, self ADD(word),
-        0x3, self SUB(word),
-        0x4, self MUL(word),
-        0x5, self DIV(word),
-        0x6, self MOD(word),
-        0x7, self SHL(word),
-        0x8, self SHR(word),
-        0x9, self AND(word),
-        0xa, self BOR(word),
-        0xb, self XOR(word),
-        0xc, self IFE(word),
-        0xd, self IFN(word),
-        0xe, self IFG(word),
-        0xf, self IFB(word)
+        0x01, self SET(word),
+        0x02, self ADD(word),
+        0x03, self SUB(word),
+        0x04, self MUL(word),
+        0x05, self MLI(word),
+        0x06, self DIV(word),
+        0x07, self DVI(word),
+        0x08, self MOD(word),
+        0x09, self AND(word),
+        0x0a, self BOR(word),
+        0x0b, self XOR(word),
+        0x0c, self SHR(word),
+        0x0d, self ASR(word),
+        0x0e, self SHL(word),
+        0x0f, nil, // as yet undefined
+        0x10, self IFB(word),
+        0x11, self IFC(word),
+        0x12, self IFE(word),
+        0x13, self IFN(word),
+        0x14, self IFG(word),
+        0x15, self IFA(word),
+        0x16, self IFL(word),
+        0x17, self IFU(word)
       )
       ,
       op := word getExtendedOp
@@ -93,7 +101,7 @@ CPU := Object clone do(
   )
   
   // value mapping
-  parseValue := method(value,
+  parseValue := method(value, a_mode,
     value switch(
       // registers
       0x00, self setAddr_pointer(-8),
@@ -125,15 +133,15 @@ CPU := Object clone do(
       0x16, self setAddr_pointer(self I + self nextWord),
       0x17, self setAddr_pointer(self J + self nextWord),
       
-      // peek, pop, push
-      0x18, self setAddr_pointer(self stackPop),
+      // peek/pop, push, pick
+      0x18, if(a_mode, self setAddr_pointer(self stackPop), self setAddr_pointer(self stackPush))
       0x19, self setAddr_pointer(self stackPeek),
-      0x1a, self setAddr_pointer(self stackPush),
+      0x1a, self setAddr_pointer(self SP + self nextWord),
       
       // special registers
-      0x1b, self setAddr_pointer(-11),
-      0x1c, self setAddr_pointer(-10),
-      0x1d, self setAddr_pointer(-9),
+      0x1b, self setAddr_pointer(-11), // SP
+      0x1c, self setAddr_pointer(-10), // PC
+      0x1d, self setAddr_pointer(-9),  // EX
       
       // next word values
       0x1e, self setAddr_pointer(self nextWord)
@@ -146,9 +154,40 @@ CPU := Object clone do(
   )
   
   // nitty gritty
+  incCycle := method(
+    self setCycle(self cycle + 1)
+  )
+  
+  twosCompliment := method(value,
+    orig := value asBinary
+    new := ""
+    toggle := false
+    for(i, orig size - 1, 0, -1,
+      writeln("#{i} #{orig at(i)}" interpolate)
+      if(toggle,
+        if(orig at(i) == "1" at(0),
+          new = "0" .. new
+          ,
+          new = "1" .. new
+        )
+        ,
+        if(orig at(i) == "0" at(0),
+          new = "0" .. new
+          ,
+          new = "1" .. new
+          toggle = true
+        )
+      )
+    )
+    writeln(new)
+    new fromBase(2)
+  )
+    
+      
+  
   nextWord := method(
     retval := self read_ram(self PC)
-    self setPC(self PC + 1) setCycle(self cycle + 1)
+    self setPC(self PC + 1) incCycle
     retval
   )
   
@@ -177,59 +216,66 @@ CPU := Object clone do(
     a := word getA
     b := word getB
     
-    parseValue(a)
+    parseValue(a, true)
     a_ptr := self addr_pointer
-    parseValue(b)
+    parseValue(b, false)
     b_ptr := self addr_pointer
     
-    b_val := nil
+    a_val := nil
     
     // determine value to set
-    if(b_ptr < 0,
-      b_ptr = -b_ptr
-      if(b_ptr >= 0x20 and b_ptr <= 0x3f, b_val = (b_ptr - 0x20))
-      if(b_ptr == 1, b_val = self J)
-      if(b_ptr == 2, b_val = self I)
-      if(b_ptr == 3, b_val = self Z)
-      if(b_ptr == 4, b_val = self Y)
-      if(b_ptr == 5, b_val = self X)
-      if(b_ptr == 6, b_val = self C)
-      if(b_ptr == 7, b_val = self B)
-      if(b_ptr == 8, b_val = self A)
-      if(b_ptr == 9, b_val = self O)
-      if(b_ptr == 10, b_val = self PC)
-      if(b_ptr == 11, b_val = self SP)
-      if(b_ptr == 12, b_val = self nextWord)
-      ,
-      b_val = self read_ram(b_ptr)
-    )
-    
-    if(b_val == nil, return)
-    
-    // determine location
     if(a_ptr < 0,
       a_ptr = -a_ptr
-      if(a_ptr >= 0x20 amd a_ptr <= 0x3f, return)
-      if(a_ptr == 12, return)
-      if(a_ptr == 1, self setJ(b_val))
-      if(a_ptr == 2, self setI(b_val))
-      if(a_ptr == 3, self setZ(b_val))
-      if(a_ptr == 4, self setY(b_val))
-      if(a_ptr == 5, self setX(b_val))
-      if(a_ptr == 6, self setC(b_val))
-      if(a_ptr == 7, self setB(b_val))
-      if(a_ptr == 8, self setA(b_val))
-      if(b_ptr == 9, self setO(b_val))
-      if(b_ptr == 10, self setPC(b_val))
-      if(b_ptr == 11, self setSP(b_val))
+      if(a_ptr >= 0x20 and a_ptr <= 0x3f,
+        if(a_ptr == 0x20, 
+          a_val = 0xffff
+          ,
+          a_val = (a_ptr - 0x21)
+        )
+      )
+      if(a_ptr == 1, a_val = self J)
+      if(a_ptr == 2, a_val = self I)
+      if(a_ptr == 3, a_val = self Z)
+      if(a_ptr == 4, a_val = self Y)
+      if(a_ptr == 5, a_val = self X)
+      if(a_ptr == 6, a_val = self C)
+      if(a_ptr == 7, a_val = self B)
+      if(a_ptr == 8, a_val = self A)
+      if(a_ptr == 9, a_val = self EX)
+      if(a_ptr == 10, a_val = self PC)
+      if(a_ptr == 11, a_val = self SP)
+      if(a_ptr == 12, a_val = self nextWord)
       ,
-      self write_ram(a_ptr, b_val)
+      a_val = self read_ram(a_ptr)
+    )
+    //writeln("a_val: #{a_val asHex}" interpolate)
+    
+    if(a_val == nil, return)
+    
+    // determine location
+    if(b_ptr < 0,
+      b_ptr = -b_ptr
+      if(b_ptr >= 0x20 and b_ptr <= 0x3f, return)
+      if(b_ptr == 12, return)
+      if(b_ptr == 1, self setJ(a_val))
+      if(b_ptr == 2, self setI(a_val))
+      if(b_ptr == 3, self setZ(a_val))
+      if(b_ptr == 4, self setY(a_val))
+      if(b_ptr == 5, self setX(a_val))
+      if(b_ptr == 6, self setC(a_val))
+      if(b_ptr == 7, self setB(a_val))
+      if(b_ptr == 8, self setA(a_val))
+      if(b_ptr == 9, self setO(a_val))
+      if(b_ptr == 10, self setPC(a_val))
+      if(b_ptr == 11, self setSP(a_val))
+      ,
+      self write_ram(b_ptr, a_val)
     )
     
-    writeln("a_ptr: #{a_ptr} b_ptr: #{b_ptr} b_val: #{b_val}" interpolate)
-    writeln("setting value at addr #{a_ptr} to #{b_val}" interpolate) 
+    //writeln("a_ptr: #{a_ptr asHex} b_ptr: #{b_ptr asHex} a_val: #{a_val asHex}" interpolate)
+    //writeln("setting value at addr #{a_ptr asHex} to #{a_val asHex}" interpolate) 
     
-    self setCycle(self cycle + 1)
+    self incCycle
   )
    
   // ram manipulations  
@@ -285,11 +331,11 @@ CPU := Object clone do(
     j := self pad(self J)
     pc := self pad(self PC)
     sp := self pad(self SP)
-    o := self pad(self O)
-    writeln(" A: #{a}  B: #{b} C: #{c}"   interpolate)
-    writeln(" X: #{x}  Y: #{y} Z: #{z}"   interpolate)
+    ex := self pad(self EX)
+    writeln(" A: #{a}  B: #{b}  C: #{c}"   interpolate)
+    writeln(" X: #{x}  Y: #{y}  Z: #{z}"   interpolate)
     writeln(" I: #{i}  J: #{j}"           interpolate)
-    writeln("PC: #{pc} SP: #{sp} O: #{o}" interpolate) 
+    writeln("PC: #{pc} SP: #{sp} EX: #{ex}" interpolate) 
     self
   )
   

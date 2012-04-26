@@ -64,6 +64,7 @@ CPU := Object clone do(
   parseOpcode := method(word,
     if(word isBasicOp,
       op := word getBasicOp
+      writeln("op: #{pad(op asHex)}" interpolate)
       op switch(
         0x01, self SET(word),
         0x02, self ADD(word),
@@ -73,13 +74,13 @@ CPU := Object clone do(
         0x06, self DIV(word),
         0x07, self DVI(word),
         0x08, self MOD(word),
-        0x09, self AND(word),
-        0x0a, self BOR(word),
-        0x0b, self XOR(word),
-        0x0c, self SHR(word),
-        0x0d, self ASR(word),
-        0x0e, self SHL(word),
-        0x0f, self STI(word),
+        0x09, self MDI(word),
+        0x0a, self AND(word),
+        0x0b, self BOR(word),
+        0x0c, self XOR(word),
+        0x0d, self SHR(word),
+        0x0e, self ASR(word),
+        0x0f, self SHL(word),
         0x10, self IFB(word),
         0x11, self IFC(word),
         0x12, self IFE(word),
@@ -92,10 +93,10 @@ CPU := Object clone do(
         0x19, nil, // as yet undefined
         0x1a, self ADX(word),
         0x1b, self SBX(word),
-        0x1c, nil // as yet undefined
-        0x1d, nil // as yet undefined
-        0x1e, nil // as yet undefined
-        0x1f, nil // as yet undefined
+        0x1c, nil, // as yet undefined
+        0x1d, nil, // as yet undefined
+        0x1e, self STI(word), // as yet undefined
+        0x1f, self STD(word) // as yet undefined
       )
       ,
       op := word getExtendedOp
@@ -108,6 +109,7 @@ CPU := Object clone do(
   
   // value mapping
   parseValue := method(value, a_mode,
+    writeln("Parsing value: #{value asHex} #{a_mode}" interpolate)
     value switch(
       // registers
       0x00, self setAddr_pointer(-8),
@@ -140,7 +142,7 @@ CPU := Object clone do(
       0x17, self setAddr_pointer(self J + self nextWord),
       
       // peek/pop, push, pick
-      0x18, if(a_mode, self setAddr_pointer(self stackPop), self setAddr_pointer(self stackPush))
+      0x18, if(a_mode, self setAddr_pointer(self stackPop), self setAddr_pointer(self stackPush)),
       0x19, self setAddr_pointer(self stackPeek),
       0x1a, self setAddr_pointer(self SP + self nextWord),
       
@@ -150,12 +152,13 @@ CPU := Object clone do(
       0x1d, self setAddr_pointer(-9),  // EX
       
       // next word values
-      0x1e, self setAddr_pointer(self nextWord)
+      0x1e, self setAddr_pointer(self nextWord),
       0x1f, self setAddr_pointer(-12),
       
-      // literal value 0x00 - 0x1f
+      // literal value 0xffff - 0x1e
       true, self setAddr_pointer(-value)
     )
+    writeln("What happended here?")
     self
   )
   
@@ -163,10 +166,9 @@ CPU := Object clone do(
   incCycle := method(
     self setCycle(self cycle + 1)
   )
-    
-      
   
   nextWord := method(
+    writeln("Reading next word - PC: #{PC asHex}" interpolate)
     retval := self read_ram(self PC)
     self setPC(self PC + 1) incCycle
     retval
@@ -199,10 +201,13 @@ CPU := Object clone do(
     
     self parseValue(a, true)
     a_ptr := self addr_pointer
+    a_val := self read_ram(a_ptr)
+    writeln("a_ptr: #{a_ptr}" interpolate)
+    writeln("a_val: #{a_val asHex}" interpolate)
+    
     self parseValue(b, false)
     b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
+    writeln("b_ptr: #{b_ptr}" interpolate)
     
     if(a_val == nil, return)
     self write_ram(b_ptr, a_val)

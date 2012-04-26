@@ -222,9 +222,33 @@ CPU := Object clone do(
     a_val := self read_ram(a_ptr)
     b_val := self read_ram(b_ptr)
     
-    new_val := a_val + b_val
+    new_val := b_val + a_val
     if(new_val > 0xffff,
       self setEX(0x0001)
+      new_val = new_val & 0xffff
+      ,
+      self setEX(0x0000)
+    )
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle
+  )
+  
+  SUB := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val - a_val
+    if(new_val < 0x0000,
+      self setEX(0xffff)
       new_val = new_val & 0xffff
       ,
       self setEX(0x0000)

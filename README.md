@@ -2,7 +2,7 @@
 Jacob M. Peck, 2012
 
 ## Overview
-This is an emulator for the [DCPU-16](http://dcpu.com/highnerd/dcpu16_1_3.txt) architecture.
+This is an emulator for the [DCPU-16](http://dcpu.com/highnerd/rc_1/dcpu16.txt) architecture.
 
 This emulator has no VRAM, no hardware emulation, and no interrupts.  This is a 
 purely memory-mapped emulator for educational purposes.

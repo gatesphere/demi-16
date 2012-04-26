@@ -55,6 +55,7 @@ CPU := Object clone do(
     self SP = 0x0000
     self EX = 0x0000
     self addr_pointer = 0
+    self cycle = 0
     self ram size repeat(i, self ram atPut(i, 0x00))
     self
   )
@@ -78,7 +79,7 @@ CPU := Object clone do(
         0x0c, self SHR(word),
         0x0d, self ASR(word),
         0x0e, self SHL(word),
-        0x0f, self MVI(word),
+        0x0f, self STI(word),
         0x10, self IFB(word),
         0x11, self IFC(word),
         0x12, self IFE(word),
@@ -90,7 +91,7 @@ CPU := Object clone do(
         0x18, nil, // as yet undefined
         0x19, nil, // as yet undefined
         0x1a, self ADX(word),
-        0x1b, self SUX(word),
+        0x1b, self SBX(word),
         0x1c, nil // as yet undefined
         0x1d, nil // as yet undefined
         0x1e, nil // as yet undefined
@@ -196,82 +197,98 @@ CPU := Object clone do(
     a := word getA
     b := word getB
     
-    parseValue(a, true)
+    self parseValue(a, true)
     a_ptr := self addr_pointer
-    parseValue(b, false)
+    self parseValue(b, false)
     b_ptr := self addr_pointer
     
-    a_val := nil
-    
-    // determine value to set
-    if(a_ptr < 0,
-      a_ptr = -a_ptr
-      if(a_ptr >= 0x20 and a_ptr <= 0x3f,
-        if(a_ptr == 0x20, 
-          a_val = 0xffff
-          ,
-          a_val = (a_ptr - 0x21)
-        )
-      )
-      if(a_ptr == 1, a_val = self J)
-      if(a_ptr == 2, a_val = self I)
-      if(a_ptr == 3, a_val = self Z)
-      if(a_ptr == 4, a_val = self Y)
-      if(a_ptr == 5, a_val = self X)
-      if(a_ptr == 6, a_val = self C)
-      if(a_ptr == 7, a_val = self B)
-      if(a_ptr == 8, a_val = self A)
-      if(a_ptr == 9, a_val = self EX)
-      if(a_ptr == 10, a_val = self PC)
-      if(a_ptr == 11, a_val = self SP)
-      if(a_ptr == 12, a_val = self nextWord)
-      ,
-      a_val = self read_ram(a_ptr)
-    )
-    //writeln("a_val: #{a_val asHex}" interpolate)
+    a_val := self read_ram(a_ptr)
     
     if(a_val == nil, return)
-    
-    // determine location
-    if(b_ptr < 0,
-      b_ptr = -b_ptr
-      if(b_ptr >= 0x20 and b_ptr <= 0x3f, return)
-      if(b_ptr == 12, return)
-      if(b_ptr == 1, self setJ(a_val))
-      if(b_ptr == 2, self setI(a_val))
-      if(b_ptr == 3, self setZ(a_val))
-      if(b_ptr == 4, self setY(a_val))
-      if(b_ptr == 5, self setX(a_val))
-      if(b_ptr == 6, self setC(a_val))
-      if(b_ptr == 7, self setB(a_val))
-      if(b_ptr == 8, self setA(a_val))
-      if(b_ptr == 9, self setO(a_val))
-      if(b_ptr == 10, self setPC(a_val))
-      if(b_ptr == 11, self setSP(a_val))
-      ,
-      self write_ram(b_ptr, a_val)
-    )
-    
-    //writeln("a_ptr: #{a_ptr asHex} b_ptr: #{b_ptr asHex} a_val: #{a_val asHex}" interpolate)
-    //writeln("setting value at addr #{a_ptr asHex} to #{a_val asHex}" interpolate) 
-    
+    self write_ram(b_ptr, a_val)
+
     self incCycle
   )
-   
+  
+  ADD := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := a_val + b_val
+    if(new_val > 0xffff,
+      self setEX(0x0001)
+      new_val = new_val & 0xffff
+      ,
+      self setEX(0x0000)
+    )
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
-    while(addr > 0xff, addr = addr - 0xff)
-    self ram[addr]
+    retval := nil
+    if(addr < 0,
+      addr = -addr
+      if(addr >= 0x20 and addr <= 0x3f,
+        if(addr == 0x20, 
+          retval = 0xffff
+          ,
+          retval = (addr - 0x21)
+        )
+      )
+      if(addr == 1, retval = self J)
+      if(addr == 2, retval = self I)
+      if(addr == 3, retval = self Z)
+      if(addr == 4, retval = self Y)
+      if(addr == 5, retval = self X)
+      if(addr == 6, retval = self C)
+      if(addr == 7, retval = self B)
+      if(addr == 8, retval = self A)
+      if(addr == 9, retval = self EX)
+      if(addr == 10, retval = self PC)
+      if(addr == 11, retval = self SP)
+      if(addr == 12, retval = self nextWord)
+      ,
+      while(addr > 0xffff, addr = addr - 0xffff)
+      retval = self ram[addr]
+    )
+    retval
   )
   
   write_ram := method(addr, value,
     //writeln("writing... #{addr} #{value}" interpolate)
-    while(addr > 0xff, addr = addr - 0xff)
-    while(value > 0xff, value = value - 0xff)
-    self ram atPut(addr, value)
+    while(value > 0xffff, value = value - 0xffff)
+    if(addr < 0,
+      addr = -addr
+      if(addr >= 0x20 and addr <= 0x3f, return)
+      if(addr == 12, return)
+      if(addr == 1, self setJ(value))
+      if(addr == 2, self setI(value))
+      if(addr == 3, self setZ(value))
+      if(addr == 4, self setY(value))
+      if(addr == 5, self setX(value))
+      if(addr == 6, self setC(value))
+      if(addr == 7, self setB(value))
+      if(addr == 8, self setA(value))
+      if(addr == 9, self setO(value))
+      if(addr == 10, self setPC(value))
+      if(addr == 11, self setSP(value))
+      ,
+      while(addr > 0xffff, addr = addr - 0xffff)
+      self ram atPut(addr, value)
+    )
     self
   )
-  
   
   // load binary
   loadBin := method(bin,

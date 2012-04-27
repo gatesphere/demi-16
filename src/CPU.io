@@ -64,7 +64,7 @@ CPU := Object clone do(
   parseOpcode := method(word,
     if(word isBasicOp,
       op := word getBasicOp
-      writeln("op: #{pad(op asHex)}" interpolate)
+      //writeln("op: #{pad(op asHex)}" interpolate)
       op switch(
         0x01, self SET(word),
         0x02, self ADD(word),
@@ -109,7 +109,7 @@ CPU := Object clone do(
   
   // value mapping
   parseValue := method(value, a_mode,
-    writeln("Parsing value: #{value asHex} #{a_mode}" interpolate)
+    //writeln("Parsing value: #{value asHex} #{a_mode}" interpolate)
     value switch(
       // registers
       0x00, self setAddr_pointer(-8),
@@ -158,7 +158,6 @@ CPU := Object clone do(
       // literal value 0xffff - 0x1e
       true, self setAddr_pointer(-value)
     )
-    writeln("What happended here?")
     self
   )
   
@@ -167,10 +166,11 @@ CPU := Object clone do(
     self setCycle(self cycle + 1)
   )
   
-  nextWord := method(
-    writeln("Reading next word - PC: #{PC asHex}" interpolate)
+  nextWord := method(skipcycle,
+    //writeln("Reading next word - PC: #{PC asHex}" interpolate)
     retval := self read_ram(self PC)
-    self setPC(self PC + 1) incCycle
+    self setPC(self PC + 1)
+    if(skipcycle not, self incCycle)
     retval
   )
   
@@ -202,12 +202,12 @@ CPU := Object clone do(
     self parseValue(a, true)
     a_ptr := self addr_pointer
     a_val := self read_ram(a_ptr)
-    writeln("a_ptr: #{a_ptr}" interpolate)
-    writeln("a_val: #{a_val asHex}" interpolate)
+    //writeln("a_ptr: #{a_ptr}" interpolate)
+    //writeln("a_val: #{a_val asHex}" interpolate)
     
     self parseValue(b, false)
     b_ptr := self addr_pointer
-    writeln("b_ptr: #{b_ptr}" interpolate)
+    //writeln("b_ptr: #{b_ptr}" interpolate)
     
     if(a_val == nil, return)
     self write_ram(b_ptr, a_val)
@@ -263,6 +263,51 @@ CPU := Object clone do(
     self incCycle incCycle
   )
   
+  MUL := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val * a_val
+    ex := ((b_val * a_val) >> 16) & 0xffff
+    
+    self setEX(ex)
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle
+  )
+  
+  MLI := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(a_val at(15) == 1, a_val = twosCompliment(a_val) fromBase(2))
+    if(b_val at(15) == 1, b_val = twosCompliment(b_val) fromBase(2))
+    
+    new_val := b_val * a_val
+    ex := ((b_val * a_val) >> 16) & 0xffff
+    
+    self setEX(ex)
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle
+  ) // must test still
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil
@@ -288,8 +333,8 @@ CPU := Object clone do(
       if(addr == 11, retval = self SP)
       if(addr == 12, retval = self nextWord)
       ,
-      while(addr > 0xffff, addr = addr - 0xffff)
-      retval = self ram[addr]
+      addr = addr & 0xffff
+      retval = self ram at(addr)
     )
     retval
   )
@@ -313,7 +358,7 @@ CPU := Object clone do(
       if(addr == 10, self setPC(value))
       if(addr == 11, self setSP(value))
       ,
-      while(addr > 0xffff, addr = addr - 0xffff)
+      addr = addr & 0xffff
       self ram atPut(addr, value)
     )
     self

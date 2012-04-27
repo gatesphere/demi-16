@@ -6,6 +6,11 @@
 
 doFile("../src/main.io")
 
+assert := method(t, 
+  t ifFalse(Exception raise("Assertion failed!" interpolate))
+)
+
+
 
 writeln("-------------------------------SET test: SET PUSH, [A]-------------")
 c := CPU initialize
@@ -16,15 +21,17 @@ writeln("Initial value of first block of ram")
 c printRegisters
 c printRamDump(1)
 writeln("initial value of ram at 0xffff (should be 0x0000): " .. pad(c read_ram(0xffff)))
+assert(c read_ram(0xffff) == 0x0000)
 w := Word with("0010001100000001" fromBase(2))
 writeln(c)
 
 writeln
 writeln("After set op")
-c SET(w)
+c parseOpcode(w)
 c printRegisters
 c printRamDump(1)
 writeln("final value of ram at 0xffff (should be 0x0032): " .. pad(c read_ram(0xffff)))
+assert(c read_ram(0xffff) == 0x0032)
 writeln(c)
 writeln("\n\n")
 
@@ -37,15 +44,18 @@ c setA(0x0003)
 c printRegisters
 c printRamDump(1)
 writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
 w := Word with("0010000000000010" fromBase(2))
 writeln(c)
 
 writeln
 writeln("After ADD op")
-c ADD(w)
+c parseOpcode(w)
 c printRegisters
 c printRamDump(1)
 writeln("final value of A (should be 0x0035): " .. pad(c A))
+assert(c A == 0x0035)
+assert(c EX == 0x0000)
 writeln(c)
 writeln("\n\n")
 
@@ -58,14 +68,40 @@ c setA(0x0003)
 c printRegisters
 c printRamDump(1)
 writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
 w := Word with("0010000000000011" fromBase(2))
 writeln(c)
 
 writeln
 writeln("After SUB op")
-c SUB(w)
+c parseOpcode(w)
 c printRegisters
 c printRamDump(1)
 writeln("final value of A (should be 0xffd1): " .. pad(c A))
+assert(c A == 0xffd1)
+assert(c EX == 0xffff)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------MUL test: MUL A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000000100" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After MUL op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0096): " .. pad(c A))
+assert(c A == 0x0096)
 writeln(c)
 writeln("\n\n")

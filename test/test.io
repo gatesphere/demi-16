@@ -153,6 +153,8 @@ assert(c EX == 0x8000)
 writeln(c)
 writeln("\n\n")
 
+
+
 writeln("-------------------------------DVI test: DVI A, [A]-------------")
 c initialize
 c write_ram(3, twosCompliment(2)) // 0003: -2
@@ -172,5 +174,51 @@ c printRamDump(1)
 writeln("final value of A (should be 0xffff): " .. pad(c A))
 assert(c A == 0xffff)
 assert(c EX == 0x8000)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------MOD test: MOD A, [A]-------------")
+c initialize
+c write_ram(3, 0x0002)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001000" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After MOD op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0001): " .. pad(c A))
+assert(c A == 0x0001)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------MDI test: MDI A, [A]-------------")
+c initialize
+c write_ram(twosCompliment(7), 0x0010)
+c setA(twosCompliment(7))
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0xfff9): " .. pad(c A))
+assert(c A == 0xfff9)
+w := Word with("0010000000001001" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After MDI op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0xfff9): " .. pad(c A))
+assert(c A == 0xfff9)
 writeln(c)
 writeln("\n\n")

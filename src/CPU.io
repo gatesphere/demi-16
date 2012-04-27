@@ -367,6 +367,53 @@ CPU := Object clone do(
     self incCycle incCycle incCycle
   )
   
+  MOD := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(a_val == 0x0000,
+      self write_ram(b_ptr, 0x0000)
+      ,
+      new_val := (b_val % a_val) & 0xffff
+      self write_ram(b_ptr, new_val)
+    )
+    
+    self incCycle incCycle incCycle
+  )
+  
+  MDI := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(a_val == 0x0000,
+      self write_ram(b_ptr, 0x0000)
+      ,
+      if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+      if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
+      new_val := (b_val % a_val) & 0xffff
+      if(new_val < 0, new_val = twosCompliment(-new_val))
+      self write_ram(b_ptr, new_val)
+    )
+    
+    self incCycle incCycle incCycle
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil

@@ -296,17 +296,18 @@ CPU := Object clone do(
     a_val := self read_ram(a_ptr)
     b_val := self read_ram(b_ptr)
     
-    if(a_val at(15) == 1, a_val = twosCompliment(a_val) fromBase(2))
-    if(b_val at(15) == 1, b_val = twosCompliment(b_val) fromBase(2))
+    if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+    if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
     
     new_val := b_val * a_val
+    if(new_val < 0, new_val = twosCompliment(-new_val))
     ex := ((b_val * a_val) >> 16) & 0xffff
     
     self setEX(ex)
     self write_ram(b_ptr, new_val)
     
     self incCycle incCycle
-  ) // must test still
+  )
   
   // ram manipulations  
   read_ram := method(addr,

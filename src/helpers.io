@@ -4,10 +4,11 @@
 
 twosCompliment := method(value,
   orig := value asBinary
+  while(orig size < 16, orig prependSeq("0"))
   new := ""
   toggle := false
   for(i, orig size - 1, 0, -1,
-    writeln("#{i} #{orig at(i)}" interpolate)
+    //writeln("#{i} #{orig at(i)}" interpolate)
     if(toggle,
       if(orig at(i) == "1" at(0),
         new = "0" .. new
@@ -23,7 +24,7 @@ twosCompliment := method(value,
       )
     )
   )
-  writeln(new)
+  //writeln(new)
   new fromBase(2)
 )
 

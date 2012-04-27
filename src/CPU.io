@@ -95,8 +95,8 @@ CPU := Object clone do(
         0x1b, self SBX(word),
         0x1c, nil, // as yet undefined
         0x1d, nil, // as yet undefined
-        0x1e, self STI(word), // as yet undefined
-        0x1f, self STD(word) // as yet undefined
+        0x1e, self STI(word),
+        0x1f, self STD(word)
       )
       ,
       op := word getExtendedOp
@@ -307,6 +307,31 @@ CPU := Object clone do(
     self write_ram(b_ptr, new_val)
     
     self incCycle incCycle
+  )
+  
+  DIV := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(a_val == 0x0000,
+      self write_ram(b_ptr, 0x0000)
+      self setEX(0x0000)
+      ,
+      new_val := (b_val / a_val) & 0xffff
+      self write_ram(b_ptr, new_val)
+      ex_val := ((b_val << 16) / a_val ) & 0xffff
+      self setEX(ex_val)
+    )
+    
+    self incCycle incCycle incCycle
   )
   
   // ram manipulations  

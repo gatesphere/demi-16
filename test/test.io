@@ -128,3 +128,26 @@ writeln("final value of A (should be 0xff6a): " .. pad(c A))
 assert(c A == 0xff6a)
 writeln(c)
 writeln("\n\n")
+
+
+
+writeln("-------------------------------DIV test: DIV A, [A]-------------")
+c initialize
+c write_ram(3, 0x0002)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000000110" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After DIV op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0001): " .. pad(c A))
+assert(c A == 0x0001)
+writeln(c)
+writeln("\n\n")

@@ -301,9 +301,10 @@ CPU := Object clone do(
     
     new_val := b_val * a_val
     if(new_val < 0, new_val = twosCompliment(-new_val))
-    ex := ((b_val * a_val) >> 16) & 0xffff
+    ex_val := ((b_val * a_val) >> 16) & 0xffff
+    if(ex_val < 0, new_val = twosCompliment(-ex_val))
     
-    self setEX(ex)
+    self setEX(ex_val)
     self write_ram(b_ptr, new_val)
     
     self incCycle incCycle
@@ -328,6 +329,38 @@ CPU := Object clone do(
       new_val := (b_val / a_val) & 0xffff
       self write_ram(b_ptr, new_val)
       ex_val := ((b_val << 16) / a_val ) & 0xffff
+      self setEX(ex_val)
+    )
+    
+    self incCycle incCycle incCycle
+  )
+  
+  DVI := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+    if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
+    
+    if(a_val == 0x0000,
+      self write_ram(b_ptr, 0x0000)
+      self setEX(0x0000)
+      ,
+      if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+      if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
+      new_val := (b_val / a_val) & 0xffff
+      if(new_val < 0, new_val = twosCompliment(-new_val))
+      self write_ram(b_ptr, new_val)
+      ex_val := ((b_val << 16) / a_val ) & 0xffff
+      if(ex_val < 0, ex_val = twosCompliment(-ex_val))
       self setEX(ex_val)
     )
     

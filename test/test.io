@@ -149,5 +149,28 @@ c printRegisters
 c printRamDump(1)
 writeln("final value of A (should be 0x0001): " .. pad(c A))
 assert(c A == 0x0001)
+assert(c EX == 0x8000)
+writeln(c)
+writeln("\n\n")
+
+writeln("-------------------------------DVI test: DVI A, [A]-------------")
+c initialize
+c write_ram(3, twosCompliment(2)) // 0003: -2
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000000111" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After DVI op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0xffff): " .. pad(c A))
+assert(c A == 0xffff)
+assert(c EX == 0x8000)
 writeln(c)
 writeln("\n\n")

@@ -1,0 +1,97 @@
+HIT_HMU1440
+
+                               __    __
+                                ||  ||
+                                ||==|| I T
+                               _||  ||_
+
+                    Harold Innovation Technologies
+                "If it ain't a HIT, it's a piece of..."
+
+
+Media Info:
+    Name: HMU1440 - 1.44 MB 3.5" Harold Media Unit
+    Document version: 1.1
+    
+    
+Description:
+    The HMU1440 is the latest effort on the part of Harold Innovation
+    Technologies to futurise the computing landscape of tomorrow; today!
+    It is a high-density, double-sided magnetic storage device.  That's right, 
+    it uses MAGNETS to store DATA.  Isn't technology amazing?
+    
+    It packs a whopping 1,440 512-word sectors into 80 beautifully delineated 
+    tracks for a total stuff-icity of 1,474,560 octets.
+    
+    It also comes complete with a precision Write Lock slide-switch to protect 
+    your many and varied files and a super high-quality Label, pre-lined for 
+    your convenience and compatible with most writing implements on the market 
+    today!  It is also available in a wide variety of colors including Blue and 
+    White, but NOT Red.
+    
+    This disc is of such high quality of construction and design that it can 
+    only be reliably WRITTEN to by Harold Innovation Technologies' HMD2043 
+    Harold Media Drive.  However, this disc is of such high quality of 
+    construction and design that it can be reliably READ from by even the most 
+    basic and technologically backward of disk drives.
+    
+    So enjoy, and may this happy little disk provide you years of faithful 
+    service before inexplicably failing, but not so fast that you cannot buy a 
+    new disk and save almost all of your data.
+    
+        -- Harold Lam, Founder and Chief Innovationist.
+
+
+Specification:
+    Data surfaces: 2
+    Tracks: 80
+    Sectors per track: 18
+    Total sectors: 1440
+    
+    Note: sectors are spread across both data surfaces; specifically, even bits 
+    of a sector are stored on the "top" data surface, odd bits on the "bottom" 
+    data surface.  This doubles effective read/write speed.
+
+
+EOF
+
+Author's Note:
+    
+    A. I wanted a floppy spec.
+    
+    B. I wanted a little bit of Cave Johnson.
+    
+    I tried to write Harold Lam as an antagonistic, blindly patriotic man who 
+    is none the less a savvy businessman who has managed to build up an IT 
+    empire despite his at-times dogmatic approach.
+    
+    Plus, I figured it could be a source of fun in the game's backstory to have
+    at least two, at-odds technology companies (all gone and turned to dust by 
+    now) taking pot shots at one another through the eloquent medium of spec 
+    sheets. Or at least *one* technology company at-odds with and taking pot-
+    shots at *everyone else*.
+    
+    In response to this, the engineers do their best to subtly mock him.  Like
+    the result of command 0xFFFF: they don't specify whether it's signed or 
+    not.  The command is only there at all because Lam decreed it thus.
+    
+    Also, originally I mistakenly thought that Nya Elektriska was Russian.  I 
+    have no excuses for why; that's just what popped into my head when I first 
+    saw the name.  I'd like to apologise to everyone for the mistake.  I've 
+    since revised Lam's introduction to the HMD2043.
+
+    As for implementation, I've tried to include enough explicit timing 
+    information to make working out how many cycles to "block" for relatively 
+    easy.  The only possibly tricky bit is the non-blocking mode.  For that to 
+    be efficiently implemented, the emulator will need some kind of event queue 
+    for keeping track of upcoming events.
+    
+    Although it would be more realistic to have the data trickle into memory 
+    during a non-blocking operation, I think we can probably get away with just 
+    doing it all-at-once at the end of the wait time for now.
+    
+    Incidentally, the design of the disks *more or less* matches that of the 
+    real 1.44 MB 3.5" disks.  In order to make them more DCPU-16 friendly, I 
+    specified that the sectors on both sides of the disc are really one, giving 
+    us sectors that are twice the size (by number of bits), but with the same 
+    overall physical configuration and capacity.

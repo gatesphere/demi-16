@@ -1,0 +1,123 @@
+KULOG_K8581 (v.1.1)
+
+    || //
+    ||//
+    ||\\
+    || \\ULOG HARDWARE TECHNOLOGIES
+      "Bringing 'fun' back into functionality"
+
+
+
+DCPU-16 Hardware Info:
+  Name: K8581 - Sound Interface Device
+  ID: 0x140fd321, Version: 0x8581
+  Manufacturer: 0x0c72a5cd (KULOG_HW)
+
+
+Description:
+  The Kulog K8581 is a sophisticated sound interface device which includes the
+  following features:
+  
+  - 4 voices
+  - 4 different waveforms (sawtooth, triangle, square, and noise)
+  - 4 waveform filters (highpass, lowpass, bandpass and NOTCH reject)
+  - 16 volume levels
+  - ADSR envelope generator
+  - Frequencies from 0 - 4369Hz
+
+
+Interrupt behaviour:
+  When the K8581 recieves a HWI interrupt, it reads the A register and performs one of
+  the following actions:
+
+
+SET REGISTERS:
+==========================================================================================
+
+0x0000-0x0003: SET_ENVELOPE_(1-4)
+  Reads the B register, which should be in the format aaaaddddssssrrrr. Sets the
+  voice's envelope where a=attack rate, d=decay rate, s=sustain volume and
+  r=release rate.
+  a, d and r times (in milliseconds) are calculated by the formula 2^x where x is
+  the a, d or r value.
+  s is the sustain volume, and can be set to higher than the volume set by
+  SET_ATTACK_VOLUMES.
+
+0x0004: SET_ATTACK_VOLUMES
+  Reads the B register, which must be in the format aaaabbbbccccdddd. Each nybble of the
+  B register corresponds to a voice's attack volume.
+
+0x0005: SET_SQUARE_DUTIES
+  Reads the B register, which must be in the format aaaabbbbccccdddd. Each nybble
+  of the B register sets the corresponding voice's square wave duty level.
+
+0x0006-0x0009: SET_FREQUENCY_(1-4)
+  Reads the B register, and sets the frequency of the voice to B/0xF
+
+0x000A: SET_HIGHPASS_CUTOFF
+  Reads the B register, and sets the highpass cutoff frequency to B/0xF
+
+0x000B: SET_LOWPASS_CUTOFF
+  Reads the B register, and sets the lowpass cutoff frequency to B/0xF
+
+0x000C: SET_FILTER_RES_VOICES
+  Reads the B register, which must be in the format rrrrrrrr00ppffff. The lower
+  4 bits define which voices should be filtered. The 'p' bits define which filters
+  should be applied, and use the following values:
+
+    00=Bandpass filter (reduces levels above lowpass cutoff and below highpass
+    cutoff)
+    01=Highpass filter (reduces levels above lowpass cutoff)
+    10=Lowpass filter (reduces levels below highpass cutoff)
+    11=NOTCH reject filter (reduces levels between highpass and lowpass)
+
+  The upper 8 bits define the resonance value of the filter.
+
+0x000D: SET_WAVEFORM_PLAY_STOP
+  Reads the B register, which must be in format sssseeeeaabbccdd. Each s is a
+  voice's start (key on) bit, and each e is a voice's end (key off) bit.
+  The lower 8 bits define which waveforms are used for the 4 voices. They use the
+  following values: 
+
+    00=Square
+    01=Triangle
+    10=Sawtooth
+    11=Noise.
+
+  When a voice's start bit is set, the voice will start playing its waveform at the
+  frequency set by SET_FREQUENCY_(1-4). It's volume will rise to the attack volume
+  set by SET_ATTACK_VOLUMES at the rate set by SET_ENVELOPE_(1-4), The volume will
+  then decrease (or increase) to the sustain volume at the rate of the
+  decay setting, and continue playing the voice at the sustain volume, until the 
+  voice's end bit is set.
+
+  When a voice's end bit is set, the voice's volume will decrease to zero at the
+  release rate set by SET_ENVELOPE_(1-4).
+
+
+GET REGISTERS:
+==========================================================================================
+
+0x0010-0x0013: GET_ENVELOPE_(1-4)
+  Sets the C register to the envelope values currently set.
+
+0x0014: GET_ATTACK_VOLUMES
+  Sets the C register to the volumes currently set.
+
+0x0015: GET_SQUARE_DUTIES
+  Sets the C register to the square duty values currently set.
+
+0x0016-0x0019: GET_FREQUENCY_(1-4)
+  Sets the C register to the value set by SET_FREQUENCY_(1-4).
+
+0x001A: GET_HIGHPASS_CUTOFF
+  Sets the C register to the value set by SET_HIGHPASS_CUTOFF
+
+0x001B: GET_LOWPASS_CUTOFF
+  Sets the C register to the value set by SET_LOWPASS_CUTOFF
+
+0c001C: GET_FILTER_RES_VOICES
+  Sets the C register to the value set by SET_FILTER_RES_VOICES
+
+0x001D: GET_WAVEFORM_PLAY_STOP
+  Sets the C register to the value set by SET_WAVEFORM_PLAY_STOP

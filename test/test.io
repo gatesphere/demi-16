@@ -480,3 +480,179 @@ writeln("final value of skip_flag (should be false): " .. c skip_flag)
 assert(c skip_flag == false)
 writeln(c)
 writeln("\n\n")
+
+
+
+writeln("-------------------------------IFA test: IFA A, [A]-------------")
+c initialize
+c write_ram(3, twosCompliment(1))
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010101" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFA op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be false): " .. c skip_flag)
+assert(c skip_flag == false)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFL test: IFL A, [A]-------------")
+c initialize
+c write_ram(3, 0x0001)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010110" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFL op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be true): " .. c skip_flag)
+assert(c skip_flag == true)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFU test: IFU A, [A]-------------")
+c initialize
+c write_ram(3, twosCompliment(1))
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010111" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFU op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be true): " .. c skip_flag)
+assert(c skip_flag == true)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------ADX test: ADX A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setEX(0x0123)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000011010" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After ADX op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0158): " .. pad(c A))
+assert(c A == 0x0158)
+assert(c EX == 0x0000)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------SBX test: SBX A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setEX(0x0123)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000011011" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After SBX op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x00f4): " .. pad(c A))
+assert(c A == 0x00f4)
+assert(c EX == 0x0000)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------STI test: STI A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c setI(0x0002)
+c setJ(0x0004)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000011110" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After STI op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0032): " .. pad(c A))
+assert(c A == 0x0032)
+assert(c I == 0x0003)
+assert(c J == 0x0005)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------STD test: STD A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c setI(0x0002)
+c setJ(0x0004)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000011111" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After STD op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0032): " .. pad(c A))
+assert(c A == 0x0032)
+assert(c I == 0x0001)
+assert(c J == 0x0003)
+writeln(c)
+writeln("\n\n")

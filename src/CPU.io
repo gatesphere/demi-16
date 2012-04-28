@@ -546,10 +546,10 @@ CPU := Object clone do(
       mask = mask + (leftmost_bit * 2 pow(15 - i))
       i = i + 1
     )
-    writeln(mask asBinary)
+    //writeln(mask asBinary)
     new_val := (b_val >> a_val) | mask
-    writeln(b_val asBinary)
-    writeln(new_val asBinary)
+    //writeln(b_val asBinary)
+    //writeln(new_val asBinary)
     ex_val := (((b_val << 16 ) >> a_val) | mask) & 0xffff
     self write_ram(b_ptr, new_val)
     self setEX(ex_val)
@@ -682,6 +682,150 @@ CPU := Object clone do(
     self incCycle incCycle
   )
   
+  IFA := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+    b_val := self read_ram(b_ptr)
+    if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
+    
+    if(b_val > a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFL := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(b_val < a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFU := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
+    b_val := self read_ram(b_ptr)
+    if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
+    
+    if(b_val < a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  ADX := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    ex_val := self EX
+    
+    new_val := b_val + a_val + ex_val
+    if(new_val > 0xffff, self setEX(0x0001), self setEX(0x0000))
+    new_val = new_val & 0xffff
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle incCycle
+  )
+  
+  SBX := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    ex_val := self EX
+    
+    new_val := b_val - a_val + ex_val
+    if(new_val < 0x0000, self setEX(0xffff), self setEX(0x0000))
+    new_val = new_val & 0xffff
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle incCycle incCycle
+  )
+  
+  STI := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+
+    self write_ram(b_ptr, a_val)
+    self setI((self I + 1) & 0xffff)
+    self setJ((self J + 1) & 0xffff)
+    
+    self incCycle incCycle
+  )
+  
+  STD := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+
+    self write_ram(b_ptr, a_val)
+    self setI((self I - 1) & 0xffff)
+    self setJ((self J - 1) & 0xffff)
+    
+    self incCycle incCycle
+  )
   // ram manipulations  
   read_ram := method(addr,
     retval := nil

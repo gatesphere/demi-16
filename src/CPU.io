@@ -48,6 +48,12 @@ CPU := Object clone do(
   // if true, make core unpredictable
   on_fire_flag := false
   
+  // internal use
+  a_ptr := nil
+  a_val := nil
+  b_ptr := nil
+  b_val := nil
+  
   clone := method(self)
   
   initialize := method(
@@ -231,19 +237,21 @@ CPU := Object clone do(
   )
    
   // ops
-  SET := method(word,
+  basicOp := method(word,
     a := word getA
     b := word getB
     
     self parseValue(a, true)
-    a_ptr := self addr_pointer
-    a_val := self read_ram(a_ptr)
-    //writeln("a_ptr: #{a_ptr}" interpolate)
-    //writeln("a_val: #{a_val asHex}" interpolate)
-    
+    self a_ptr := self addr_pointer
     self parseValue(b, false)
-    b_ptr := self addr_pointer
-    //writeln("b_ptr: #{b_ptr}" interpolate)
+    self b_ptr := self addr_pointer
+    
+    self a_val := self read_ram(a_ptr)
+    self b_val := self read_ram(b_ptr)
+  )
+  
+  SET := method(word,
+    self basicOp(word)
     
     if(a_val == nil, return)
     self write_ram(b_ptr, a_val)
@@ -252,16 +260,7 @@ CPU := Object clone do(
   )
   
   ADD := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val + a_val
     if(new_val > 0xffff,
@@ -276,16 +275,7 @@ CPU := Object clone do(
   )
   
   SUB := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val - a_val
     if(new_val < 0x0000,
@@ -300,16 +290,7 @@ CPU := Object clone do(
   )
   
   MUL := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val * a_val
     ex := ((b_val * a_val) >> 16) & 0xffff
@@ -321,16 +302,7 @@ CPU := Object clone do(
   )
   
   MLI := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
     if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
@@ -347,16 +319,7 @@ CPU := Object clone do(
   )
   
   DIV := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(a_val == 0x0000,
       self write_ram(b_ptr, 0x0000)
@@ -372,16 +335,7 @@ CPU := Object clone do(
   )
   
   DVI := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
     if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
@@ -404,16 +358,7 @@ CPU := Object clone do(
   )
   
   MOD := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(a_val == 0x0000,
       self write_ram(b_ptr, 0x0000)
@@ -426,16 +371,7 @@ CPU := Object clone do(
   )
   
   MDI := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(a_val == 0x0000,
       self write_ram(b_ptr, 0x0000)
@@ -451,16 +387,7 @@ CPU := Object clone do(
   )
   
   AND := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val & a_val
     
@@ -470,16 +397,7 @@ CPU := Object clone do(
   )
   
   BOR := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val | a_val
     
@@ -489,16 +407,7 @@ CPU := Object clone do(
   )
   
   XOR := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val ^ a_val
     
@@ -508,16 +417,7 @@ CPU := Object clone do(
   )
   
   SHR := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val >> a_val
     ex_val := ((b_val << 16) >> a_val) & 0xffff
@@ -528,16 +428,7 @@ CPU := Object clone do(
   )
   
   ASR := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     leftmost_bit := b_val at(15)
     mask := 0
@@ -558,16 +449,7 @@ CPU := Object clone do(
   )
   
   SHL := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     new_val := b_val << a_val
     ex_val := ((b_val << a_val) >> 16) & 0xffff
@@ -578,16 +460,7 @@ CPU := Object clone do(
   )
   
   IFB := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if((b_val & a_val) != 0,
       self skip_flag = false
@@ -599,16 +472,7 @@ CPU := Object clone do(
   )
   
   IFC := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if((b_val & a_val) == 0,
       self skip_flag = false
@@ -620,16 +484,7 @@ CPU := Object clone do(
   )
   
   IFE := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(b_val == a_val,
       self skip_flag = false
@@ -641,16 +496,7 @@ CPU := Object clone do(
   )
   
   IFN := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(b_val != a_val,
       self skip_flag = false
@@ -662,16 +508,7 @@ CPU := Object clone do(
   )
   
   IFG := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(b_val > a_val,
       self skip_flag = false
@@ -683,17 +520,9 @@ CPU := Object clone do(
   )
   
   IFA := method(word,
-    a := word getA
-    b := word getB
+    self basicOp(word)
     
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
     if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
-    b_val := self read_ram(b_ptr)
     if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
     
     if(b_val > a_val,
@@ -706,16 +535,7 @@ CPU := Object clone do(
   )
   
   IFL := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
+    self basicOp(word)
     
     if(b_val < a_val,
       self skip_flag = false
@@ -727,17 +547,9 @@ CPU := Object clone do(
   )
   
   IFU := method(word,
-    a := word getA
-    b := word getB
+    self basicOp(word)
     
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
     if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
-    b_val := self read_ram(b_ptr)
     if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
     
     if(b_val < a_val,
@@ -750,16 +562,8 @@ CPU := Object clone do(
   )
   
   ADX := method(word,
-    a := word getA
-    b := word getB
+    self basicOp(word)
     
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
     ex_val := self EX
     
     new_val := b_val + a_val + ex_val
@@ -771,20 +575,12 @@ CPU := Object clone do(
   )
   
   SBX := method(word,
-    a := word getA
-    b := word getB
+    self basicOp(word)
     
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
-    b_val := self read_ram(b_ptr)
     ex_val := self EX
     
     new_val := b_val - a_val + ex_val
-    if(new_val < 0x0000, self setEX(0xffff), self setEX(0x0000))
+    if(new_val < 0x0000 or new_val > 0xffff, self setEX(0xffff), self setEX(0x0000))
     new_val = new_val & 0xffff
     self write_ram(b_ptr, new_val)
     
@@ -792,15 +588,7 @@ CPU := Object clone do(
   )
   
   STI := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
+    self basicOp(word)
 
     self write_ram(b_ptr, a_val)
     self setI((self I + 1) & 0xffff)
@@ -810,15 +598,7 @@ CPU := Object clone do(
   )
   
   STD := method(word,
-    a := word getA
-    b := word getB
-    
-    self parseValue(a, true)
-    a_ptr := self addr_pointer
-    self parseValue(b, false)
-    b_ptr := self addr_pointer
-    
-    a_val := self read_ram(a_ptr)
+    self basicOp(word)
 
     self write_ram(b_ptr, a_val)
     self setI((self I - 1) & 0xffff)

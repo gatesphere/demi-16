@@ -414,6 +414,133 @@ CPU := Object clone do(
     self incCycle incCycle incCycle
   )
   
+  AND := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val & a_val
+    
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle
+  )
+  
+  BOR := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val | a_val
+    
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle
+  )
+  
+  XOR := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val ^ a_val
+    
+    self write_ram(b_ptr, new_val)
+    
+    self incCycle
+  )
+  
+  SHR := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val >> a_val
+    ex_val := ((b_val << 16) >> a_val) & 0xffff
+    self write_ram(b_ptr, new_val)
+    self setEX(ex_val)
+    
+    self incCycle
+  )
+  
+  ASR := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    leftmost_bit := b_val at(15)
+    mask := 0
+    i := 0
+    while(i < a_val,
+      mask = mask + (leftmost_bit * 2 pow(15 - i))
+      i = i + 1
+    )
+    writeln(mask asBinary)
+    new_val := (b_val >> a_val) | mask
+    writeln(b_val asBinary)
+    writeln(new_val asBinary)
+    ex_val := (((b_val << 16 ) >> a_val) | mask) & 0xffff
+    self write_ram(b_ptr, new_val)
+    self setEX(ex_val)
+    
+    self incCycle
+  )
+  
+  SHL := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    new_val := b_val << a_val
+    ex_val := ((b_val << a_val) >> 16) & 0xffff
+    self write_ram(b_ptr, new_val)
+    self setEX(ex_val)
+    
+    self incCycle
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil

@@ -222,3 +222,141 @@ writeln("final value of A (should be 0xfff9): " .. pad(c A))
 assert(c A == 0xfff9)
 writeln(c)
 writeln("\n\n")
+
+
+
+writeln("-------------------------------AND test: AND A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001010" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After AND op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0002): " .. pad(c A))
+assert(c A == 0x0002)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------BOR test: BOR A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001011" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After BOR op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0033): " .. pad(c A))
+assert(c A == 0x0033)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------XOR test: XOR A, [A]-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001100" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After XOR op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0031): " .. pad(c A))
+assert(c A == 0x0031)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------SHR test: SHR A, [A]-------------")
+c initialize
+c write_ram(3, 0x0001)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001101" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After SHR op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0001): " .. pad(c A))
+assert(c A == 0x0001)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------ASR test: ASR A, [A]-------------")
+c initialize
+c write_ram(twosCompliment(4), 0x0002) // fffc: 2
+c setA(twosCompliment(4))
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0xfffc): " .. pad(c A))
+assert(c A == 0xfffc)
+w := Word with("0010000000001110" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After ASR op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0xffff): " .. pad(c A))
+assert(c A == 0xffff)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------SHL test: SHL A, [A]-------------")
+c initialize
+c write_ram(3, 0x0001)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of A (should be 0x0003): " .. pad(c A))
+assert(c A == 0x0003)
+w := Word with("0010000000001111" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After SHL op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of A (should be 0x0006): " .. pad(c A))
+assert(c A == 0x0006)
+writeln(c)
+writeln("\n\n")

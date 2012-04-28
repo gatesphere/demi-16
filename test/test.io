@@ -360,3 +360,123 @@ writeln("final value of A (should be 0x0006): " .. pad(c A))
 assert(c A == 0x0006)
 writeln(c)
 writeln("\n\n")
+
+
+
+writeln("-------------------------------IFB test: IFB A, [A]-------------")
+c initialize
+c write_ram(3, 0x0000)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010000" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFB op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be true): " .. c skip_flag)
+assert(c skip_flag == true)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFC test: IFC A, [A]-------------")
+c initialize
+c write_ram(3, 0x0000)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010001" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFC op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be false): " .. c skip_flag)
+assert(c skip_flag == false)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFE test: IFE A, [A]-------------")
+c initialize
+c write_ram(3, 0x0000)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010010" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFC op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be true): " .. c skip_flag)
+assert(c skip_flag == true)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFN test: IFN A, [A]-------------")
+c initialize
+c write_ram(3, 0x0000)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010011" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFN op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be false): " .. c skip_flag)
+assert(c skip_flag == false)
+writeln(c)
+writeln("\n\n")
+
+
+
+writeln("-------------------------------IFG test: IFG A, [A]-------------")
+c initialize
+c write_ram(3, 0x0000)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of skip_flag (should be false): " .. c skip_flag)
+assert(c A == 0x0003)
+assert(c skip_flag == false)
+w := Word with("0010000000010100" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After IFG op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of skip_flag (should be false): " .. c skip_flag)
+assert(c skip_flag == false)
+writeln(c)
+writeln("\n\n")

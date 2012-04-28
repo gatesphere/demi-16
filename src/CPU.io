@@ -40,6 +40,14 @@ CPU := Object clone do(
    */
   addr_pointer ::= 0
   
+  // skip flag
+  // if true, skip the next op after evaluating parameters.
+  skip_flag := false
+  
+  // on fire flag
+  // if true, make core unpredictable
+  on_fire_flag := false
+  
   clone := method(self)
   
   initialize := method(
@@ -56,60 +64,88 @@ CPU := Object clone do(
     self EX = 0x0000
     self addr_pointer = 0
     self cycle = 0
+    self skip_flag = false
+    self on_fire_flag = false
     self ram size repeat(i, self ram atPut(i, 0x00))
     self
   )
   
   // opcode mapping
   parseOpcode := method(word,
-    if(word isBasicOp,
-      op := word getBasicOp
-      //writeln("op: #{pad(op asHex)}" interpolate)
-      op switch(
-        0x01, self SET(word),
-        0x02, self ADD(word),
-        0x03, self SUB(word),
-        0x04, self MUL(word),
-        0x05, self MLI(word),
-        0x06, self DIV(word),
-        0x07, self DVI(word),
-        0x08, self MOD(word),
-        0x09, self MDI(word),
-        0x0a, self AND(word),
-        0x0b, self BOR(word),
-        0x0c, self XOR(word),
-        0x0d, self SHR(word),
-        0x0e, self ASR(word),
-        0x0f, self SHL(word),
-        0x10, self IFB(word),
-        0x11, self IFC(word),
-        0x12, self IFE(word),
-        0x13, self IFN(word),
-        0x14, self IFG(word),
-        0x15, self IFA(word),
-        0x16, self IFL(word),
-        0x17, self IFU(word),
-        0x18, nil, // as yet undefined
-        0x19, nil, // as yet undefined
-        0x1a, self ADX(word),
-        0x1b, self SBX(word),
-        0x1c, nil, // as yet undefined
-        0x1d, nil, // as yet undefined
-        0x1e, self STI(word),
-        0x1f, self STD(word)
-      )
+    if(self skip_flag,
+      self skipOpcode(word)
       ,
-      op := word getExtendedOp
-      op switch(
-        0x01, self JSR(word)
+      if(word isBasicOp,
+        op := word getBasicOp
+        op switch(
+          0x01, self SET(word),
+          0x02, self ADD(word),
+          0x03, self SUB(word),
+          0x04, self MUL(word),
+          0x05, self MLI(word),
+          0x06, self DIV(word),
+          0x07, self DVI(word),
+          0x08, self MOD(word),
+          0x09, self MDI(word),
+          0x0a, self AND(word),
+          0x0b, self BOR(word),
+          0x0c, self XOR(word),
+          0x0d, self SHR(word),
+          0x0e, self ASR(word),
+          0x0f, self SHL(word),
+          0x10, self IFB(word),
+          0x11, self IFC(word),
+          0x12, self IFE(word),
+          0x13, self IFN(word),
+          0x14, self IFG(word),
+          0x15, self IFA(word),
+          0x16, self IFL(word),
+          0x17, self IFU(word),
+          0x18, nil, // as yet undefined
+          0x19, nil, // as yet undefined
+          0x1a, self ADX(word),
+          0x1b, self SBX(word),
+          0x1c, nil, // as yet undefined
+          0x1d, nil, // as yet undefined
+          0x1e, self STI(word),
+          0x1f, self STD(word)
+        )
+        ,
+        op := word getExtendedOp
+        op switch(
+          0x01, self JSR(word),
+          0x07, self HCF(word)
+        )
       )
     )
     self
   )
   
+  skipOpcode := method(word,
+    if(word isBasicOp,
+      op := word getBasicOp
+      if(op >= 0x10 and op <= 0x17, 
+        self skip_flag = true
+        self incCycle
+        ,
+        self skip_flag = false
+      )
+      self parseValue(word getA, true, true)
+      self parseValue(word getB, false, true)
+      ,
+      self parseValue(word getExtendedA, true, true)
+      self skip_flag = false
+    )
+    self incCycle
+  )
+  
   // value mapping
-  parseValue := method(value, a_mode,
-    //writeln("Parsing value: #{value asHex} #{a_mode}" interpolate)
+  parseValue := method(value, a_mode, skip_mode,
+    if(skip_mode,
+      if(value >= 0x10 and value <= 0x17, self nextWord)
+      if(value == 0x1a or value == 0x1e or value == 0x1f, self nextWord)
+      return
+    )
     value switch(
       // registers
       0x00, self setAddr_pointer(-8),
@@ -541,6 +577,111 @@ CPU := Object clone do(
     self incCycle
   )
   
+  IFB := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if((b_val & a_val) != 0,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFC := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if((b_val & a_val) == 0,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFE := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(b_val == a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFN := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(b_val != a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
+  IFG := method(word,
+    a := word getA
+    b := word getB
+    
+    self parseValue(a, true)
+    a_ptr := self addr_pointer
+    self parseValue(b, false)
+    b_ptr := self addr_pointer
+    
+    a_val := self read_ram(a_ptr)
+    b_val := self read_ram(b_ptr)
+    
+    if(b_val > a_val,
+      self skip_flag = false
+      ,
+      self skip_flag = true
+    )
+    
+    self incCycle incCycle
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil
@@ -643,11 +784,19 @@ CPU := Object clone do(
     if(start != nil, k = start, k = 0)
     lines repeat(i,
       write(pad((i + k) * 8) .. ": ")
-      8 repeat(j, write(pad(self read_ram(i * 8 + j)) .. " "))
+      8 repeat(j, 
+        p := pad(self read_ram(i * 8 + j))
+        if(self PC == i * 8 + j,
+          p = "*" .. p .. "*"
+          ,
+          p = " " .. p .. " "
+        )
+        write(p)
+      )
       writeln
     )
     self
   )
   
-  asString := method("<demi-16 emu -- cycle: #{cycle}>" interpolate)
+  asString := method("<demi-16 emu -- cycle: #{cycle} -- skip: #{skip_flag} -- fire: #{on_fire_flag}>" interpolate)
 )

@@ -92,7 +92,6 @@ DESCRIPTION is a short text that describes the opcode or value.
  1 | 0x0e | ASR b, a | sets b to b>>a, sets EX to ((b<<16)>>>a)&0xffff 
    |      |          | (arithmetic shift) (treats b as signed)
  1 | 0x0f | SHL b, a | sets b to b<<a, sets EX to ((b<<a)>>16)&0xffff
-
  2+| 0x10 | IFB b, a | performs next instruction only if (b&a)!=0
  2+| 0x11 | IFC b, a | performs next instruction only if (b&a)==0
  2+| 0x12 | IFE b, a | performs next instruction only if b==a 

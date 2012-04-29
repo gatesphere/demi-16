@@ -242,12 +242,19 @@ CPU := Object clone do(
     b := word getB
     
     self parseValue(a, true)
-    self a_ptr := self addr_pointer
+    self a_ptr = self addr_pointer
     self parseValue(b, false)
-    self b_ptr := self addr_pointer
+    self b_ptr = self addr_pointer
     
-    self a_val := self read_ram(a_ptr)
-    self b_val := self read_ram(b_ptr)
+    self a_val = self read_ram(a_ptr)
+    self b_val = self read_ram(b_ptr)
+  )
+  
+  extendedOp := method(word,
+    a := word getExtendedA
+    self parseValue(a, true)
+    self a_ptr = self addr_pointer
+    self a_val = self read_ram(a_ptr)
   )
   
   SET := method(word,
@@ -614,6 +621,16 @@ CPU := Object clone do(
     
     self incCycle incCycle
   )
+  
+  JSR := method(word,
+    self extendedOp(word)
+    self setSP((self SP - 1) & 0xffff)
+    self write_ram(self SP, self PC)
+    self setPC(a_val)
+    
+    self incCycle incCycle incCycle
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil

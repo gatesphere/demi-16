@@ -656,3 +656,29 @@ assert(c I == 0x0001)
 assert(c J == 0x0003)
 writeln(c)
 writeln("\n\n")
+
+
+
+writeln("-------------------------------JSR test: JSR A-------------")
+c initialize
+c write_ram(3, 0x0032)
+c setPC(0x0005)
+c setA(0x0003)
+c printRegisters
+c printRamDump(1)
+writeln("initial value of PC (should be 0x0005): " .. pad(c PC))
+assert(c PC == 0x0005)
+assert(c A == 0x0003)
+w := Word with("0000000000100000" fromBase(2))
+writeln(c)
+
+writeln
+writeln("After JSR op")
+c parseOpcode(w)
+c printRegisters
+c printRamDump(1)
+writeln("final value of PC (should be 0x0003): " .. pad(c PC))
+assert(c PC == 0x0003)
+assert(c read_ram(c SP) == 0x0005)
+writeln(c)
+writeln("\n\n")

@@ -580,7 +580,15 @@ CPU := Object clone do(
     ex_val := self EX
     
     new_val := b_val - a_val + ex_val
-    if(new_val < 0x0000 or new_val > 0xffff, self setEX(0xffff), self setEX(0x0000))
+    if(new_val < 0x0000, 
+      self setEX(0xffff)
+      , 
+      if(new_val > 0xffff,
+        self setEX(0x0001)
+        ,
+        self setEX(0x0000)
+      )
+    )
     new_val = new_val & 0xffff
     self write_ram(b_ptr, new_val)
     

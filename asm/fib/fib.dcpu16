@@ -1,5 +1,5 @@
 ;; fibonacci generator
-;; generates the 2+Ith fib number
+;; generates the 2+Ith fib number, stores it into B
 
 :initialize
 SET A, 1       ; 011111 00000 00001  0000000000000001  => 7c01 0001

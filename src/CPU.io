@@ -198,7 +198,7 @@ CPU := Object clone do(
       0x1f, self setAddr_pointer(-12),
       
       // literal value 0xffff - 0x1e
-      true, self setAddr_pointer(-value)
+      value, self setAddr_pointer(-value)
     )
     self
   )

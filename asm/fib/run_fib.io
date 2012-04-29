@@ -1,6 +1,6 @@
 #!/usr/bin/env io
 
-doFile("../src/main.io")
+doFile("../../src/main.io")
 
 writeStatus := method(c,
   writeln(c)

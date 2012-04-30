@@ -5,6 +5,7 @@
 list(
   "helpers.io",
   "Word.io",
-  "CPU.io"
+  "CPU.io",
+  "UI.io"
 ) foreach(f, doRelativeFile(f))
 

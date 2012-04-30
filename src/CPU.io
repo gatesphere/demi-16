@@ -216,6 +216,11 @@ CPU := Object clone do(
     retval
   )
   
+  step := method(
+    self parseOpcode(Word with(self nextWord(true)))
+    self
+  )
+  
   stackPop := method(
     retval := self SP
     self setSP(self SP + 1)

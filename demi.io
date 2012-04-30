@@ -6,4 +6,5 @@
 
 doFile("src/main.io")
 
-UI run
+BIN := System args at(1)
+UI run(BIN)

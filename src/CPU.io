@@ -211,12 +211,13 @@ CPU := Object clone do(
   nextWord := method(skipcycle,
     //writeln("Reading next word - PC: #{PC asHex}" interpolate)
     retval := self read_ram(self PC)
-    self setPC(self PC + 1)
+    self setPC((self PC + 1) & 0xffff)
     if(skipcycle not, self incCycle)
     retval
   )
   
   step := method(
+    if(self on_fire_flag, self doFire)
     self parseOpcode(Word with(self nextWord(true)))
     self
   )
@@ -636,6 +637,11 @@ CPU := Object clone do(
     self incCycle incCycle incCycle
   )
   
+  HCF := method(word,
+    self on_fire_flag := true
+    9 repeat(self incCycle)
+  )
+  
   // ram manipulations  
   read_ram := method(addr,
     retval := nil
@@ -690,6 +696,33 @@ CPU := Object clone do(
       self ram atPut(addr, value)
     )
     self
+  )
+  
+  // HCF support
+  doFire := method(
+    writeln("FIRE!")
+    // randomly change ram
+    Random value(0, 50) round repeat(
+      addr := Random value(0x0000, 0xffff) round
+      value := Random value(0x0000, 0xffff) round
+      self write_ram(addr, value)
+      writeln("  fire: changing ram addr #{pad(addr)} to #{pad(value)}" interpolate)
+    )
+    
+    // randomly change registers
+    for(i, -1, -11, -1,
+      if(Random value < .2,
+        value := Random value(0x0000, 0xffff) round 
+        self write_ram(i, value)
+        writeln("  fire: changing register #{i} to #{pad(value)}" interpolate)
+      )
+    )
+    
+    // add extra cycles
+    Random value(0, 7) round repeat(
+      writeln("  fire: adding extra cycle")
+      self incCycle
+    )
   )
   
   // load binary

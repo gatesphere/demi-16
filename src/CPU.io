@@ -700,13 +700,13 @@ CPU := Object clone do(
   
   // HCF support
   doFire := method(
-    writeln("FIRE!")
+    //writeln("FIRE!")
     // randomly change ram
     Random value(0, 50) round repeat(
       addr := Random value(0x0000, 0xffff) round
       value := Random value(0x0000, 0xffff) round
       self write_ram(addr, value)
-      writeln("  fire: changing ram addr #{pad(addr)} to #{pad(value)}" interpolate)
+      //writeln("  fire: changing ram addr #{pad(addr)} to #{pad(value)}" interpolate)
     )
     
     // randomly change registers
@@ -714,13 +714,13 @@ CPU := Object clone do(
       if(Random value < .2,
         value := Random value(0x0000, 0xffff) round 
         self write_ram(i, value)
-        writeln("  fire: changing register #{i} to #{pad(value)}" interpolate)
+        //writeln("  fire: changing register #{i} to #{pad(value)}" interpolate)
       )
     )
     
     // add extra cycles
     Random value(0, 7) round repeat(
-      writeln("  fire: adding extra cycle")
+      //writeln("  fire: adding extra cycle")
       self incCycle
     )
   )

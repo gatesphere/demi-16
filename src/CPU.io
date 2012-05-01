@@ -338,10 +338,10 @@ CPU := Object clone do(
       self write_ram(b_ptr, 0x0000)
       self setEX(0x0000)
       ,
-      new_val := (b_val / a_val) & 0xffff
-      self write_ram(b_ptr, new_val)
       ex_val := ((b_val << 16) / a_val ) & 0xffff
       self setEX(ex_val)
+      new_val := (b_val / a_val) & 0xffff
+      self write_ram(b_ptr, new_val)
     )
     
     self incCycle incCycle incCycle
@@ -359,12 +359,12 @@ CPU := Object clone do(
       ,
       if(a_val at(15) == 1, a_val = -(twosCompliment(a_val)))
       if(b_val at(15) == 1, b_val = -(twosCompliment(b_val)))
-      new_val := (b_val / a_val) & 0xffff
-      if(new_val < 0, new_val = twosCompliment(-new_val))
-      self write_ram(b_ptr, new_val)
       ex_val := ((b_val << 16) / a_val ) & 0xffff
       if(ex_val < 0, ex_val = twosCompliment(-ex_val))
       self setEX(ex_val)
+      new_val := (b_val / a_val) & 0xffff
+      if(new_val < 0, new_val = twosCompliment(-new_val))
+      self write_ram(b_ptr, new_val)
     )
     
     self incCycle incCycle incCycle
@@ -434,8 +434,8 @@ CPU := Object clone do(
     
     new_val := b_val >> a_val
     ex_val := ((b_val << 16) >> a_val) & 0xffff
-    self write_ram(b_ptr, new_val)
     self setEX(ex_val)
+    self write_ram(b_ptr, new_val)
     
     self incCycle
   )
@@ -455,8 +455,8 @@ CPU := Object clone do(
     //writeln(b_val asBinary)
     //writeln(new_val asBinary)
     ex_val := (((b_val << 16 ) >> a_val) | mask) & 0xffff
-    self write_ram(b_ptr, new_val)
     self setEX(ex_val)
+    self write_ram(b_ptr, new_val)
     
     self incCycle
   )
@@ -466,8 +466,8 @@ CPU := Object clone do(
     
     new_val := b_val << a_val
     ex_val := ((b_val << a_val) >> 16) & 0xffff
-    self write_ram(b_ptr, new_val)
     self setEX(ex_val)
+    self write_ram(b_ptr, new_val)
     
     self incCycle
   )
@@ -611,9 +611,9 @@ CPU := Object clone do(
   STI := method(word,
     self basicOp(word)
 
-    self write_ram(b_ptr, a_val)
     self setI((self I + 1) & 0xffff)
     self setJ((self J + 1) & 0xffff)
+    self write_ram(b_ptr, a_val)
     
     self incCycle incCycle
   )
@@ -621,9 +621,9 @@ CPU := Object clone do(
   STD := method(word,
     self basicOp(word)
 
-    self write_ram(b_ptr, a_val)
     self setI((self I - 1) & 0xffff)
     self setJ((self J - 1) & 0xffff)
+    self write_ram(b_ptr, a_val)
     
     self incCycle incCycle
   )
@@ -688,7 +688,7 @@ CPU := Object clone do(
       if(addr == 6, self setC(value))
       if(addr == 7, self setB(value))
       if(addr == 8, self setA(value))
-      if(addr == 9, self setO(value))
+      if(addr == 9, self setEX(value))
       if(addr == 10, self setPC(value))
       if(addr == 11, self setSP(value))
       ,
